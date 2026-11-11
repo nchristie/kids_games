@@ -194,9 +194,9 @@
   #yayWord{ font-size:clamp(36px,10vw,60px); font-weight:800; color:#1fae63; opacity:0; }
   #yayWord.show{ animation:popIn .5s cubic-bezier(.34,1.56,.64,1) forwards; opacity:1; }
 
-  #treatGrid{ display:flex; flex-wrap:wrap; justify-content:center; }
-  #treatGrid .choice{ width:calc(50% - 7px); padding:12px 6px; }
-  #treatGrid .emo{ font-size:clamp(48px,11vw,68px); }
+  #treatGrid, #feelGrid{ display:flex; flex-wrap:wrap; justify-content:center; }
+  #treatGrid .choice, #feelGrid .choice{ width:calc(50% - 7px); padding:12px 6px; }
+  #treatGrid .emo, #feelGrid .emo{ font-size:clamp(48px,11vw,68px); }
 
   @media (max-height:620px){
     .art-badge{ display:none; }
@@ -238,10 +238,11 @@
     <button class="home-btn" data-home>🏠</button>
     <div class="art-badge" style="background:radial-gradient(circle,#ffe0ea,#ffb6c9);">🩹</div>
     <div class="grid" id="feelGrid">
-      <button class="choice" data-val="😊" data-lab="yay"><span class="emo">😊</span><span class="lab">yay</span></button>
-      <button class="choice" data-val="🤒" data-lab="hot"><span class="emo">🤒</span><span class="lab">hot</span></button>
-      <button class="choice" data-val="🤕" data-lab="ow"><span class="emo">🤕</span><span class="lab">ow</span></button>
-      <button class="choice" data-val="😢" data-lab="sad"><span class="emo">😢</span><span class="lab">sad</span></button>
+      <button class="choice" data-val="😊" data-lab="yay"><span class="emo">😊</span></button>
+      <button class="choice" data-val="🤒" data-lab="hot"><span class="emo">🤒</span></button>
+      <button class="choice" data-val="🤕" data-lab="ow"><span class="emo">🤕</span></button>
+      <button class="choice" data-val="😢" data-lab="sad"><span class="emo">😢</span></button>
+      <button class="choice" data-val="😵‍💫" data-lab="dizzy"><span class="emo">😵‍💫</span></button>
     </div>
     <div class="spacer"></div>
     <button class="big-btn btn-go" id="btnFeelOk" disabled>book</button>
@@ -545,7 +546,8 @@
     hot: ["💊","💉","🧊","🥤","🛏️"],
     ow:  ["🩹","💉","🧊","💊","🩼"],
     sad: ["🤗","💉","🧸","🎈","💤"],
-    yay: ["💉","🍎","🏃","💤"]
+    yay: ["💉","🍎","🏃","💤"],
+    dizzy: ["🥤","🛏️","💊","💉","🍎"]
   };
 
   function nameBoxes(el, name){
