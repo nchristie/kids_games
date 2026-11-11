@@ -198,6 +198,13 @@
   #treatGrid .choice, #feelGrid .choice{ width:calc(50% - 7px); padding:12px 6px; }
   #treatGrid .emo, #feelGrid .emo{ font-size:clamp(48px,11vw,68px); }
 
+  #timeGrid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; width:100%; margin:8px 0; }
+  #timeGrid .choice{ padding:8px 4px; }
+  #timeGrid .emo{ font-size:clamp(36px,9vw,54px); }
+  #timeGrid .lab{ font-size:clamp(18px,4.6vw,26px); }
+  .ptime{ margin-left:auto; display:flex; align-items:center; gap:4px; font-weight:800; font-size:clamp(16px,4vw,22px); }
+  .ptime .clk{ font-size:clamp(26px,6vw,36px); }
+
   @media (max-height:620px){
     .art-badge{ display:none; }
   }
@@ -245,7 +252,15 @@
       <button class="choice" data-val="😵‍💫" data-lab="dizzy"><span class="emo">😵‍💫</span></button>
     </div>
     <div class="spacer"></div>
-    <button class="big-btn btn-go" id="btnFeelOk" disabled>book</button>
+    <button class="big-btn btn-go" id="btnFeelOk" disabled>ok</button>
+  </section>
+
+  <!-- TIME: pick an appointment time -->
+  <section class="screen" id="screen-time">
+    <button class="home-btn" data-home>🏠</button>
+    <div class="grid" id="timeGrid"></div>
+    <div class="spacer"></div>
+    <button class="big-btn btn-go" id="btnTimeOk" disabled>book</button>
   </section>
 
   <!-- DONE -->
@@ -256,7 +271,7 @@
     <div id="ticket">
       <div id="ticketName"></div>
       <div id="ticketRow"></div>
-      <div class="mini" style="font-size:clamp(20px,5vw,28px);">🕙 10:00</div>
+      <div class="mini" id="ticketTime" style="font-size:clamp(20px,5vw,28px);"></div>
     </div>
     <div class="spacer"></div>
     <button class="big-btn btn-blue" id="btnAgain">go</button>
@@ -306,7 +321,11 @@
   var COLORS = ["#ff6b6b","#2ec4b6","#ffd166","#a66bff","#4cc9f0","#8ac926","#ff8fab","#ff9f1c"];
   var NOTES = [261.6,293.7,329.6,392.0,440.0,523.3]; // pentatonic-ish, always sounds nice
 
-  var state = { name:"", feel:null, feelLab:null };
+  var state = { name:"", feel:null, feelLab:null, hour:null };
+
+  // appointment times: on the hour, 9am to 5pm (24h hour -> clock emoji)
+  var CLOCKS = { 9:"🕘", 10:"🕙", 11:"🕚", 12:"🕛", 13:"🕐", 14:"🕑", 15:"🕒", 16:"🕓", 17:"🕔" };
+  function timeText(h){ return (h > 12 ? h - 12 : h) + ":00"; }
 
   // ---------- audio ----------
   var actx = null;
@@ -374,7 +393,7 @@
 
   // ---------- screen nav ----------
   var screens = {};
-  ["welcome","name","feel","done","list","treat","well"].forEach(function(id){
+  ["welcome","name","feel","time","done","list","treat","well"].forEach(function(id){
     screens[id] = document.getElementById("screen-"+id);
   });
   function show(id){
@@ -494,7 +513,30 @@
     var r = btn.getBoundingClientRect();
     burst(r.left+r.width/2, r.top+r.height/2);
   });
-  btnFeelOk.addEventListener("click", finish);
+  btnFeelOk.addEventListener("click", function(){ tapSound(); show("time"); });
+
+  // ---------- time screen ----------
+  var timeGrid = document.getElementById("timeGrid");
+  var btnTimeOk = document.getElementById("btnTimeOk");
+  Object.keys(CLOCKS).forEach(function(h){
+    var btn = document.createElement("button");
+    btn.className = "choice";
+    btn.dataset.val = h;
+    btn.innerHTML = '<span class="emo">'+CLOCKS[h]+'</span><span class="lab">'+timeText(+h)+'</span>';
+    timeGrid.appendChild(btn);
+  });
+  timeGrid.addEventListener("click", function(e){
+    var btn = e.target.closest(".choice");
+    if(!btn) return;
+    timeGrid.querySelectorAll(".choice").forEach(function(c){ c.classList.remove("selected"); });
+    btn.classList.add("selected");
+    state.hour = +btn.dataset.val;
+    btnTimeOk.disabled = false;
+    tone(NOTES[(state.hour - 9) % NOTES.length], 0.25, "triangle");
+    var r = btn.getBoundingClientRect();
+    burst(r.left+r.width/2, r.top+r.height/2);
+  });
+  btnTimeOk.addEventListener("click", finish);
 
   // ---------- done screen ----------
   var ticketName = document.getElementById("ticketName");
@@ -502,7 +544,8 @@
   var stamp = document.getElementById("stamp");
 
   function finish(){
-    bookings.push({ name: state.name || "hi", feel: state.feel || "😊", lab: state.feelLab || "yay" });
+    bookings.push({ name: state.name || "hi", feel: state.feel || "😊", lab: state.feelLab || "yay", hour: state.hour || 9 });
+    bookings.sort(function(a, b){ return (a.hour || 99) - (b.hour || 99); });
     saveBookings();
     show("done");
     confettiBurst();
@@ -520,6 +563,8 @@
 
     ticketRow.innerHTML =
       '<span class="emo">'+(state.feel||"😊")+'</span>';
+    var h = state.hour || 9;
+    document.getElementById("ticketTime").textContent = CLOCKS[h] + " " + timeText(h);
 
     stamp.classList.remove("show");
     void stamp.offsetWidth; // restart animation
@@ -534,8 +579,8 @@
   try{ bookings = JSON.parse(localStorage.getItem(STORE)); }catch(e){}
   if(!Array.isArray(bookings)){
     bookings = [
-      { name:"mum", feel:"🤒", lab:"hot" },
-      { name:"dad", feel:"🤕", lab:"ow" }
+      { name:"mum", feel:"🤒", lab:"hot", hour:10 },
+      { name:"dad", feel:"🤕", lab:"ow", hour:14 }
     ];
   }
   function saveBookings(){
@@ -582,6 +627,12 @@
       emo.textContent = b.feel;
       btn.appendChild(emo);
       btn.appendChild(nm);
+      if(CLOCKS[b.hour]){
+        var tm = document.createElement("span");
+        tm.className = "ptime";
+        tm.innerHTML = '<span class="clk">'+CLOCKS[b.hour]+'</span>'+timeText(b.hour);
+        btn.appendChild(tm);
+      }
       btn.addEventListener("click", function(){ tapSound(); openTreat(i); });
       patientList.appendChild(btn);
     });
@@ -674,11 +725,12 @@
 
   // ---------- reset ----------
   function resetAll(){
-    state = { name:"", feel:null, feelLab:null };
+    state = { name:"", feel:null, feelLab:null, hour:null };
     nameStrip.innerHTML = ""; renderCaret();
     btnNameOk.disabled = true;
     document.querySelectorAll(".choice").forEach(function(c){ c.classList.remove("selected"); });
     btnFeelOk.disabled = true;
+    btnTimeOk.disabled = true;
     show("welcome");
   }
 
