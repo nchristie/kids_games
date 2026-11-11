@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>go see doc</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='78' font-size='80'%3E%F0%9F%A9%BA%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --coral:#ff6b6b; --teal:#2ec4b6; --gold:#ffd166; --violet:#a66bff;
+    --sky:#4cc9f0; --lime:#8ac926; --pink:#ff8fab; --orange:#ff9f1c;
+    --ink:#2b2d42; --card:#ffffff;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none;}
+  html,body{margin:0; height:100%; overflow:hidden;}
+  body{
+    font-family:"Comic Sans MS","Chalkboard SE","Baloo 2",ui-rounded,"Segoe UI",sans-serif;
+    background:linear-gradient(135deg,#bde0fe,#cdb4ff,#ffd6e8,#caffbf);
+    background-size:400% 400%;
+    animation:bgdrift 22s ease-in-out infinite;
+    color:var(--ink);
+    height:100vh; width:100vw;
+    display:flex; align-items:center; justify-content:center;
+  }
+  @keyframes bgdrift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+  #app{ width:min(96vw,640px); height:min(94vh,860px); position:relative; }
+  .screen{
+    position:absolute; inset:0;
+    background:var(--card);
+    border-radius:32px;
+    box-shadow:0 20px 50px rgba(0,0,0,.18);
+    padding:clamp(14px,3vw,28px);
+    display:none; flex-direction:column; align-items:center; justify-content:flex-start;
+    opacity:0; transform:scale(.94);
+    overflow:hidden;
+  }
+  .screen.active{ display:flex; animation:screenIn .35s ease forwards; }
+  @keyframes screenIn{ to{ opacity:1; transform:scale(1); } }
+
+  .home-btn{
+    position:absolute; top:14px; left:14px; z-index:5;
+    width:48px; height:48px; border-radius:50%; border:none;
+    background:#fff; font-size:24px; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 10px rgba(0,0,0,.15); cursor:pointer;
+  }
+  .home-btn:active{ transform:scale(.9); }
+
+  .art-badge{
+    width:clamp(120px,32vw,190px); height:clamp(120px,32vw,190px);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:clamp(60px,16vw,100px);
+    margin:6px auto 4px;
+    animation:floatY 3.5s ease-in-out infinite;
+    filter:drop-shadow(0 8px 14px rgba(0,0,0,.18));
+  }
+  @keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+  .scene{ position:relative; width:100%; display:flex; justify-content:center; gap:4px; }
+  .mini{ font-size:clamp(28px,7vw,46px); animation:floatY 3s ease-in-out infinite; }
+  .mini.d2{ animation-delay:.4s; }
+  .mini.d3{ animation-delay:.8s; }
+
+  .big-btn{
+    border:none; border-radius:999px; cursor:pointer;
+    font-family:inherit; font-weight:700; letter-spacing:1px;
+    color:#fff; font-size:clamp(22px,6vw,34px);
+    padding:clamp(10px,2.6vh,18px) clamp(34px,8vw,64px);
+    box-shadow:0 10px 0 rgba(0,0,0,.15), 0 14px 24px rgba(0,0,0,.18);
+    transition:transform .08s ease, opacity .2s ease;
+  }
+  .big-btn:active{ transform:translateY(6px) scale(.98); box-shadow:0 4px 0 rgba(0,0,0,.15); }
+  .big-btn[disabled]{ opacity:.35; pointer-events:none; }
+  .btn-go{ background:linear-gradient(180deg,#54e08b,#1fae63); }
+  .btn-go.pulse{ animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+
+  h1.title{ font-size:clamp(20px,5.5vw,30px); margin:2px 0 10px; text-align:center; }
+
+  /* name screen */
+  #nameStrip{
+    display:flex; gap:6px; min-height:clamp(46px,10vh,68px);
+    align-items:center; justify-content:center; flex-wrap:wrap;
+    margin:6px 0 10px; width:100%;
+  }
+  .letterbox{
+    width:clamp(34px,8vw,52px); height:clamp(40px,9vh,58px);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    font-size:clamp(20px,5vw,30px); font-weight:800; color:#fff;
+    box-shadow:0 5px 0 rgba(0,0,0,.15);
+    animation:popIn .32s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn{0%{transform:scale(0) rotate(-20deg);opacity:0}60%{transform:scale(1.2) rotate(8deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+  .letterbox.leaving{ animation:popOut .18s ease forwards; }
+  @keyframes popOut{ to{ transform:scale(0) rotate(20deg); opacity:0; } }
+  .caretbox{
+    width:clamp(34px,8vw,52px); height:clamp(40px,9vh,58px);
+    border-radius:12px; border:3px dashed #d8d8e6;
+  }
+
+  #keyboard{ display:flex; flex-direction:column; gap:6px; align-items:center; width:100%; }
+  .kbrow{ display:flex; gap:5px; justify-content:center; }
+  .key{
+    border:none; border-radius:10px; background:#eef1ff; color:var(--ink);
+    font-family:inherit; font-weight:800; cursor:pointer;
+    width:clamp(26px,7.6vw,42px); height:clamp(32px,7.6vh,46px);
+    font-size:clamp(14px,3.6vw,19px);
+    box-shadow:0 3px 0 rgba(0,0,0,.12);
+  }
+  .key:active, .key.active{ background:var(--sky); color:#fff; transform:translateY(2px); }
+  .key.wide{ width:clamp(50px,13vw,74px); background:#ffd6d6; font-size:clamp(16px,4vw,20px); }
+
+  /* choice grids */
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; width:100%; margin:8px 0; }
+  .choice{
+    border:none; border-radius:24px; cursor:pointer; padding:10px 6px 8px;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    background:#f4f6ff; box-shadow:0 6px 0 rgba(0,0,0,.08);
+    transition:transform .12s ease, background .12s ease;
+  }
+  .choice .emo{ font-size:clamp(40px,9vw,58px); }
+  .choice .lab{ font-weight:800; font-size:clamp(14px,3.4vw,18px); letter-spacing:1px; }
+  .choice.selected{ background:#fff2b8; transform:scale(1.06); box-shadow:0 0 0 4px var(--gold), 0 8px 0 rgba(0,0,0,.08); }
+  .choice:active{ transform:scale(.95); }
+
+  .spacer{ flex:1; }
+
+  /* ticket */
+  #ticket{
+    width:100%; border-radius:22px; background:repeating-linear-gradient(135deg,#fff,#fff 10px);
+    border:3px dashed #ffb703; padding:14px; display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  #ticketName{ display:flex; gap:4px; flex-wrap:wrap; justify-content:center; }
+  #ticketRow{ display:flex; gap:22px; align-items:center; justify-content:center; margin-top:4px; }
+  #ticketRow .emo{ font-size:clamp(42px,10vw,60px); }
+  .stamp{
+    position:absolute; top:10%; right:6%; font-size:clamp(50px,13vw,80px);
+    transform:rotate(-14deg); opacity:0; color:#2ec4b6;
+    filter:drop-shadow(0 4px 6px rgba(0,0,0,.2));
+  }
+  .stamp.show{ animation:stampDown .5s cubic-bezier(.2,1.6,.4,1) forwards; }
+  @keyframes stampDown{0%{transform:scale(3) rotate(-30deg);opacity:0}70%{transform:scale(.85) rotate(-6deg);opacity:1}100%{transform:scale(1) rotate(-14deg);opacity:1}}
+
+  /* particles & confetti (fixed, above everything) */
+  .fxlayer{ position:fixed; inset:0; pointer-events:none; z-index:999; overflow:hidden; }
+  .particle{
+    position:absolute; left:0; top:0; border-radius:50%;
+    animation:burstFly .6s ease-out forwards;
+  }
+  @keyframes burstFly{ to{ transform:translate(var(--dx),var(--dy)) scale(0); opacity:0; } }
+  .confetti{
+    position:absolute; top:-5vh; border-radius:2px;
+    animation-name:confettiFall; animation-timing-function:linear; animation-fill-mode:forwards;
+  }
+  @keyframes confettiFall{ to{ transform:translateY(115vh) rotate(var(--rot)); opacity:.95; } }
+
+  @media (max-height:620px){
+    .art-badge{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- WELCOME -->
+  <section class="screen active" id="screen-welcome">
+    <h1 class="title">go see doc</h1>
+    <div class="scene">
+      <span class="mini">🏥</span>
+      <div class="art-badge" style="background:radial-gradient(circle,#d7fff1,#9ee7d4);">🩺</div>
+      <span class="mini d3">🧸</span>
+    </div>
+    <div class="spacer"></div>
+    <button class="big-btn btn-go pulse" id="btnStart">go</button>
+    <div class="spacer"></div>
+  </section>
+
+  <!-- NAME -->
+  <section class="screen" id="screen-name">
+    <button class="home-btn" data-home>🏠</button>
+    <div class="art-badge" style="background:radial-gradient(circle,#ffe8c2,#ffd089);">📛</div>
+    <div id="nameStrip"></div>
+    <div id="keyboard"></div>
+    <div class="spacer"></div>
+    <button class="big-btn btn-go" id="btnNameOk" disabled>ok</button>
+  </section>
+
+  <!-- PET -->
+  <section class="screen" id="screen-pet">
+    <button class="home-btn" data-home>🏠</button>
+    <div class="art-badge" style="background:radial-gradient(circle,#e3e0ff,#c6bfff);">🧸</div>
+    <div class="grid" id="petGrid">
+      <button class="choice" data-val="🧸">
+        <span class="emo">🧸</span><span class="lab">pet</span>
+      </button>
+      <button class="choice" data-val="🐶">
+        <span class="emo">🐶</span><span class="lab">pet</span>
+      </button>
+      <button class="choice" data-val="🐱">
+        <span class="emo">🐱</span><span class="lab">pet</span>
+      </button>
+      <button class="choice" data-val="🦕">
+        <span class="emo">🦕</span><span class="lab">pet</span>
+      </button>
+    </div>
+    <div class="spacer"></div>
+    <button class="big-btn btn-go" id="btnPetOk" disabled>go</button>
+  </section>
+
+  <!-- FEEL -->
+  <section class="screen" id="screen-feel">
+    <button class="home-btn" data-home>🏠</button>
+    <div class="art-badge" style="background:radial-gradient(circle,#ffe0ea,#ffb6c9);">🩹</div>
+    <div class="grid" id="feelGrid">
+      <button class="choice" data-val="😊" data-lab="yay"><span class="emo">😊</span><span class="lab">yay</span></button>
+      <button class="choice" data-val="🤒" data-lab="hot"><span class="emo">🤒</span><span class="lab">hot</span></button>
+      <button class="choice" data-val="🤕" data-lab="ow"><span class="emo">🤕</span><span class="lab">ow</span></button>
+      <button class="choice" data-val="😢" data-lab="sad"><span class="emo">😢</span><span class="lab">sad</span></button>
+    </div>
+    <div class="spacer"></div>
+    <button class="big-btn btn-go" id="btnFeelOk" disabled>go</button>
+  </section>
+
+  <!-- DONE -->
+  <section class="screen" id="screen-done">
+    <button class="home-btn" data-home>🏠</button>
+    <span class="stamp" id="stamp">✅</span>
+    <div class="art-badge" style="background:radial-gradient(circle,#fff3bf,#ffe066);">🎉</div>
+    <div id="ticket">
+      <div id="ticketName"></div>
+      <div id="ticketRow"></div>
+      <div class="mini" style="font-size:clamp(20px,5vw,28px);">🕙 10:00</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="big-btn btn-go" id="btnAgain">go</button>
+  </section>
+
+</div>
+
+<div class="fxlayer" id="fx"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var COLORS = ["#ff6b6b","#2ec4b6","#ffd166","#a66bff","#4cc9f0","#8ac926","#ff8fab","#ff9f1c"];
+  var NOTES = [261.6,293.7,329.6,392.0,440.0,523.3]; // pentatonic-ish, always sounds nice
+
+  var state = { name:"", pet:null, feel:null, feelLab:null };
+
+  // ---------- audio ----------
+  var actx = null;
+  function ac(){
+    if(!actx){ actx = new (window.AudioContext || window.webkitAudioContext)(); }
+    if(actx.state === "suspended"){ actx.resume(); }
+    return actx;
+  }
+  function tone(freq, dur, type){
+    try{
+      var c = ac();
+      var osc = c.createOscillator();
+      var gain = c.createGain();
+      osc.type = type || "triangle";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, c.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.22, c.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+      osc.connect(gain); gain.connect(c.destination);
+      osc.start(); osc.stop(c.currentTime + dur + 0.02);
+    }catch(e){}
+  }
+  function pingRandom(){ tone(NOTES[Math.floor(Math.random()*NOTES.length)], 0.28, "triangle"); }
+  function popDown(){ tone(220, 0.14, "sine"); }
+  function tapSound(){ tone(330, 0.12, "sine"); }
+  function tune(){
+    var seq = [523.3, 659.3, 784.0, 1046.5];
+    seq.forEach(function(f, i){ setTimeout(function(){ tone(f, 0.3, "triangle"); }, i*160); });
+  }
+
+  // ---------- fx: bursts & confetti ----------
+  var fx = document.getElementById("fx");
+  function burst(x, y){
+    for(var i=0;i<10;i++){
+      var p = document.createElement("div");
+      p.className = "particle";
+      var size = 6 + Math.random()*8;
+      var ang = Math.random()*Math.PI*2;
+      var dist = 40 + Math.random()*50;
+      p.style.width = size+"px"; p.style.height = size+"px";
+      p.style.left = x+"px"; p.style.top = y+"px";
+      p.style.background = COLORS[Math.floor(Math.random()*COLORS.length)];
+      p.style.setProperty("--dx", (Math.cos(ang)*dist)+"px");
+      p.style.setProperty("--dy", (Math.sin(ang)*dist)+"px");
+      fx.appendChild(p);
+      setTimeout(function(el){ return function(){ el.remove(); }; }(p), 650);
+    }
+  }
+  function confettiBurst(){
+    for(var i=0;i<60;i++){
+      var c = document.createElement("div");
+      c.className = "confetti";
+      var w = 6+Math.random()*8, h = 8+Math.random()*10;
+      c.style.width = w+"px"; c.style.height = h+"px";
+      c.style.left = (Math.random()*100)+"vw";
+      c.style.background = COLORS[Math.floor(Math.random()*COLORS.length)];
+      c.style.setProperty("--rot", (Math.random()*720-360)+"deg");
+      var dur = 1.8 + Math.random()*1.6;
+      c.style.animationDuration = dur+"s";
+      c.style.animationDelay = (Math.random()*0.4)+"s";
+      fx.appendChild(c);
+      setTimeout(function(el){ return function(){ el.remove(); }; }(c), (dur+0.6)*1000);
+    }
+  }
+
+  // ---------- screen nav ----------
+  var screens = {};
+  ["welcome","name","pet","feel","done"].forEach(function(id){
+    screens[id] = document.getElementById("screen-"+id);
+  });
+  function show(id){
+    Object.keys(screens).forEach(function(k){ screens[k].classList.toggle("active", k===id); });
+  }
+
+  document.querySelectorAll("[data-home]").forEach(function(btn){
+    btn.addEventListener("click", function(){ tapSound(); resetAll(); });
+  });
+
+  // ---------- welcome ----------
+  document.getElementById("btnStart").addEventListener("click", function(e){
+    ac(); tone(392,0.2,"triangle");
+    var r = e.target.getBoundingClientRect();
+    burst(r.left+r.width/2, r.top+r.height/2);
+    show("name");
+  });
+
+  // ---------- name screen ----------
+  var nameStrip = document.getElementById("nameStrip");
+  var btnNameOk = document.getElementById("btnNameOk");
+  var MAXLEN = 10;
+
+  function renderCaret(){
+    // trailing dashed box hint, only if room left
+    var existing = nameStrip.querySelector(".caretbox");
+    if(existing) existing.remove();
+    if(state.name.length < MAXLEN){
+      var c = document.createElement("div");
+      c.className = "caretbox";
+      nameStrip.appendChild(c);
+    }
+  }
+
+  function addLetter(ch){
+    if(state.name.length >= MAXLEN) return;
+    state.name += ch;
+    var box = document.createElement("div");
+    box.className = "letterbox";
+    box.textContent = ch;
+    box.style.background = COLORS[Math.floor(Math.random()*COLORS.length)];
+    box.style.transform = "rotate("+(Math.random()*14-7)+"deg)";
+    var caret = nameStrip.querySelector(".caretbox");
+    if(caret) nameStrip.insertBefore(box, caret); else nameStrip.appendChild(box);
+    renderCaret();
+    pingRandom();
+    var r = box.getBoundingClientRect();
+    burst(r.left+r.width/2, r.top+r.height/2);
+    btnNameOk.disabled = state.name.length === 0;
+  }
+  function removeLetter(){
+    if(state.name.length === 0) return;
+    state.name = state.name.slice(0,-1);
+    var boxes = nameStrip.querySelectorAll(".letterbox");
+    var last = boxes[boxes.length-1];
+    if(last){
+      last.classList.add("leaving");
+      setTimeout(function(){ last.remove(); }, 180);
+    }
+    popDown();
+    btnNameOk.disabled = state.name.length === 0;
+  }
+
+  var ROWS = ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
+  var kb = document.getElementById("keyboard");
+  ROWS.forEach(function(row, idx){
+    var rowEl = document.createElement("div");
+    rowEl.className = "kbrow";
+    row.split("").forEach(function(ch){
+      var b = document.createElement("button");
+      b.className = "key";
+      b.textContent = ch;
+      b.id = "key-"+ch;
+      b.addEventListener("click", function(){ addLetter(ch); });
+      rowEl.appendChild(b);
+    });
+    if(idx === ROWS.length-1){
+      var del = document.createElement("button");
+      del.className = "key wide";
+      del.textContent = "⌫";
+      del.addEventListener("click", removeLetter);
+      rowEl.appendChild(del);
+    }
+    kb.appendChild(rowEl);
+  });
+  renderCaret();
+
+  document.addEventListener("keydown", function(e){
+    if(!screens.name.classList.contains("active")) return;
+    if(e.key === "Backspace"){ e.preventDefault(); removeLetter(); return; }
+    if(e.key === "Enter"){ if(state.name.length>0){ goPet(); } return; }
+    if(/^[a-zA-Z]$/.test(e.key)){
+      var up = e.key.toUpperCase();
+      addLetter(up);
+      var keyEl = document.getElementById("key-"+up);
+      if(keyEl){
+        keyEl.classList.add("active");
+        setTimeout(function(){ keyEl.classList.remove("active"); }, 140);
+      }
+    }
+  });
+
+  function goPet(){ tapSound(); show("pet"); }
+  btnNameOk.addEventListener("click", goPet);
+
+  // ---------- pet screen ----------
+  var btnPetOk = document.getElementById("btnPetOk");
+  document.getElementById("petGrid").addEventListener("click", function(e){
+    var btn = e.target.closest(".choice");
+    if(!btn) return;
+    document.querySelectorAll("#petGrid .choice").forEach(function(c){ c.classList.remove("selected"); });
+    btn.classList.add("selected");
+    state.pet = btn.dataset.val;
+    btnPetOk.disabled = false;
+    tapSound();
+    var r = btn.getBoundingClientRect();
+    burst(r.left+r.width/2, r.top+r.height/2);
+  });
+  btnPetOk.addEventListener("click", function(){ tapSound(); show("feel"); });
+
+  // ---------- feel screen ----------
+  var btnFeelOk = document.getElementById("btnFeelOk");
+  document.getElementById("feelGrid").addEventListener("click", function(e){
+    var btn = e.target.closest(".choice");
+    if(!btn) return;
+    document.querySelectorAll("#feelGrid .choice").forEach(function(c){ c.classList.remove("selected"); });
+    btn.classList.add("selected");
+    state.feel = btn.dataset.val;
+    state.feelLab = btn.dataset.lab;
+    btnFeelOk.disabled = false;
+    tapSound();
+    var r = btn.getBoundingClientRect();
+    burst(r.left+r.width/2, r.top+r.height/2);
+  });
+  btnFeelOk.addEventListener("click", finish);
+
+  // ---------- done screen ----------
+  var ticketName = document.getElementById("ticketName");
+  var ticketRow = document.getElementById("ticketRow");
+  var stamp = document.getElementById("stamp");
+
+  function finish(){
+    show("done");
+    confettiBurst();
+    tune();
+
+    ticketName.innerHTML = "";
+    var letters = (state.name || "HI").split("");
+    letters.forEach(function(ch){
+      var box = document.createElement("div");
+      box.className = "letterbox";
+      box.textContent = ch;
+      box.style.background = COLORS[Math.floor(Math.random()*COLORS.length)];
+      ticketName.appendChild(box);
+    });
+
+    ticketRow.innerHTML =
+      '<span class="emo">'+(state.pet||"🧸")+'</span>' +
+      '<span class="emo">'+(state.feel||"😊")+'</span>';
+
+    stamp.classList.remove("show");
+    void stamp.offsetWidth; // restart animation
+    setTimeout(function(){ stamp.classList.add("show"); tone(180,0.18,"sine"); }, 350);
+  }
+
+  document.getElementById("btnAgain").addEventListener("click", function(){ tapSound(); resetAll(); });
+
+  // ---------- reset ----------
+  function resetAll(){
+    state = { name:"", pet:null, feel:null, feelLab:null };
+    nameStrip.innerHTML = ""; renderCaret();
+    btnNameOk.disabled = true;
+    document.querySelectorAll(".choice").forEach(function(c){ c.classList.remove("selected"); });
+    btnPetOk.disabled = true;
+    btnFeelOk.disabled = true;
+    show("welcome");
+  }
+
+})();
+</script>
+</body>
+</html>
