@@ -194,6 +194,10 @@
   #yayWord{ font-size:clamp(36px,10vw,60px); font-weight:800; color:#1fae63; opacity:0; }
   #yayWord.show{ animation:popIn .5s cubic-bezier(.34,1.56,.64,1) forwards; opacity:1; }
 
+  #treatGrid{ display:flex; flex-wrap:wrap; justify-content:center; }
+  #treatGrid .choice{ width:calc(50% - 7px); padding:12px 6px; }
+  #treatGrid .emo{ font-size:clamp(48px,11vw,68px); }
+
   @media (max-height:620px){
     .art-badge{ display:none; }
   }
@@ -538,10 +542,10 @@
   }
 
   var TREATMENTS = {
-    hot: [["💊","pill"],["🧊","ice"],["🥤","sip"],["🛏️","bed"]],
-    ow:  [["🩹","pad"],["🧊","ice"],["💊","pill"],["🩼","stick"]],
-    sad: [["🤗","hug"],["🧸","ted"],["🎈","fun"],["💤","nap"]],
-    yay: [["💉","jab"],["🍎","eat"],["🏃","run"],["💤","nap"]]
+    hot: ["💊","💉","🧊","🥤","🛏️"],
+    ow:  ["🩹","💉","🧊","💊","🩼"],
+    sad: ["🤗","💉","🧸","🎈","💤"],
+    yay: ["💉","🍎","🏃","💤"]
   };
 
   function nameBoxes(el, name){
@@ -603,8 +607,8 @@
     (TREATMENTS[b.lab] || TREATMENTS.hot).forEach(function(t){
       var btn = document.createElement("button");
       btn.className = "choice";
-      btn.dataset.val = t[0];
-      btn.innerHTML = '<span class="emo">'+t[0]+'</span><span class="lab">'+t[1]+'</span>';
+      btn.dataset.val = t;
+      btn.innerHTML = '<span class="emo">'+t+'</span>';
       treatGrid.appendChild(btn);
     });
     btnTreatGo.disabled = true;
