@@ -254,7 +254,7 @@
       <div class="mini" style="font-size:clamp(20px,5vw,28px);">🕙 10:00</div>
     </div>
     <div class="spacer"></div>
-    <button class="big-btn btn-go" id="btnAgain">book</button>
+    <button class="big-btn btn-blue" id="btnAgain">go</button>
   </section>
 
   <!-- LIST: booked patients -->
@@ -521,7 +521,7 @@
     setTimeout(function(){ stamp.classList.add("show"); tone(180,0.18,"sine"); }, 350);
   }
 
-  document.getElementById("btnAgain").addEventListener("click", function(){ tapSound(); resetAll(); });
+  document.getElementById("btnAgain").addEventListener("click", function(){ tapSound(); resetAll(); showList(); });
 
   // ---------- bookings (saved in this browser) ----------
   var STORE = "goSeeDoc.bookings";
