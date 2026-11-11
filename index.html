@@ -187,28 +187,6 @@
     <button class="big-btn btn-go" id="btnNameOk" disabled>ok</button>
   </section>
 
-  <!-- PET -->
-  <section class="screen" id="screen-pet">
-    <button class="home-btn" data-home>🏠</button>
-    <div class="art-badge" style="background:radial-gradient(circle,#e3e0ff,#c6bfff);">🧸</div>
-    <div class="grid" id="petGrid">
-      <button class="choice" data-val="🧸">
-        <span class="emo">🧸</span><span class="lab">pet</span>
-      </button>
-      <button class="choice" data-val="🐶">
-        <span class="emo">🐶</span><span class="lab">pet</span>
-      </button>
-      <button class="choice" data-val="🐱">
-        <span class="emo">🐱</span><span class="lab">pet</span>
-      </button>
-      <button class="choice" data-val="🦕">
-        <span class="emo">🦕</span><span class="lab">pet</span>
-      </button>
-    </div>
-    <div class="spacer"></div>
-    <button class="big-btn btn-go" id="btnPetOk" disabled>go</button>
-  </section>
-
   <!-- FEEL -->
   <section class="screen" id="screen-feel">
     <button class="home-btn" data-home>🏠</button>
@@ -248,7 +226,7 @@
   var COLORS = ["#ff6b6b","#2ec4b6","#ffd166","#a66bff","#4cc9f0","#8ac926","#ff8fab","#ff9f1c"];
   var NOTES = [261.6,293.7,329.6,392.0,440.0,523.3]; // pentatonic-ish, always sounds nice
 
-  var state = { name:"", pet:null, feel:null, feelLab:null };
+  var state = { name:"", feel:null, feelLab:null };
 
   // ---------- audio ----------
   var actx = null;
@@ -316,7 +294,7 @@
 
   // ---------- screen nav ----------
   var screens = {};
-  ["welcome","name","pet","feel","done"].forEach(function(id){
+  ["welcome","name","feel","done"].forEach(function(id){
     screens[id] = document.getElementById("screen-"+id);
   });
   function show(id){
@@ -407,7 +385,7 @@
   document.addEventListener("keydown", function(e){
     if(!screens.name.classList.contains("active")) return;
     if(e.key === "Backspace"){ e.preventDefault(); removeLetter(); return; }
-    if(e.key === "Enter"){ if(state.name.length>0){ goPet(); } return; }
+    if(e.key === "Enter"){ if(state.name.length>0){ goFeel(); } return; }
     if(/^[a-zA-Z]$/.test(e.key)){
       var low = e.key.toLowerCase();
       addLetter(low);
@@ -419,23 +397,8 @@
     }
   });
 
-  function goPet(){ tapSound(); show("pet"); }
-  btnNameOk.addEventListener("click", goPet);
-
-  // ---------- pet screen ----------
-  var btnPetOk = document.getElementById("btnPetOk");
-  document.getElementById("petGrid").addEventListener("click", function(e){
-    var btn = e.target.closest(".choice");
-    if(!btn) return;
-    document.querySelectorAll("#petGrid .choice").forEach(function(c){ c.classList.remove("selected"); });
-    btn.classList.add("selected");
-    state.pet = btn.dataset.val;
-    btnPetOk.disabled = false;
-    tapSound();
-    var r = btn.getBoundingClientRect();
-    burst(r.left+r.width/2, r.top+r.height/2);
-  });
-  btnPetOk.addEventListener("click", function(){ tapSound(); show("feel"); });
+  function goFeel(){ tapSound(); show("feel"); }
+  btnNameOk.addEventListener("click", goFeel);
 
   // ---------- feel screen ----------
   var btnFeelOk = document.getElementById("btnFeelOk");
@@ -474,7 +437,6 @@
     });
 
     ticketRow.innerHTML =
-      '<span class="emo">'+(state.pet||"🧸")+'</span>' +
       '<span class="emo">'+(state.feel||"😊")+'</span>';
 
     stamp.classList.remove("show");
@@ -486,11 +448,10 @@
 
   // ---------- reset ----------
   function resetAll(){
-    state = { name:"", pet:null, feel:null, feelLab:null };
+    state = { name:"", feel:null, feelLab:null };
     nameStrip.innerHTML = ""; renderCaret();
     btnNameOk.disabled = true;
     document.querySelectorAll(".choice").forEach(function(c){ c.classList.remove("selected"); });
-    btnPetOk.disabled = true;
     btnFeelOk.disabled = true;
     show("welcome");
   }
