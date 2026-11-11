@@ -380,7 +380,7 @@
     btnNameOk.disabled = state.name.length === 0;
   }
 
-  var ROWS = ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
+  var ROWS = ["qwertyuiop","asdfghjkl","zxcvbnm"];
   var kb = document.getElementById("keyboard");
   ROWS.forEach(function(row, idx){
     var rowEl = document.createElement("div");
@@ -409,9 +409,9 @@
     if(e.key === "Backspace"){ e.preventDefault(); removeLetter(); return; }
     if(e.key === "Enter"){ if(state.name.length>0){ goPet(); } return; }
     if(/^[a-zA-Z]$/.test(e.key)){
-      var up = e.key.toUpperCase();
-      addLetter(up);
-      var keyEl = document.getElementById("key-"+up);
+      var low = e.key.toLowerCase();
+      addLetter(low);
+      var keyEl = document.getElementById("key-"+low);
       if(keyEl){
         keyEl.classList.add("active");
         setTimeout(function(){ keyEl.classList.remove("active"); }, 140);
